@@ -1,4 +1,5 @@
 MNIST_data
 datasets
+.ipynb_checkpoints
 *.zip
 *.pdf
