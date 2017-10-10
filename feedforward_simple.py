@@ -5,7 +5,7 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
-LEARNING_RATE = 0.002
+LEARNING_RATE = 0.006
 EPOCHS = 300
 
 # shortcut function to easily define hidden layers
@@ -23,14 +23,24 @@ def load_dataset():
     enc.fit(y)
     return train_test_split(x, enc.transform(y))
 
+# Randomly generated dataset with a lot of
+# samples to debug NN
+def test_dataset():
+    x = np.random.randint(20, size=(1000, 10))
+    y = np.random.randint(3, size=(1000, 1))
+
+    enc = OneHotEncoder(sparse=False)
+    enc.fit(y)
+    return train_test_split(x, enc.transform(y))
+
 def main():
     train_x, test_x, train_y, test_y = load_dataset()
 
     # layer sizes (features and classes)
     x_size = train_x.shape[1]
     y_size = train_y.shape[1]
-    h_size1 = 8
-    h_size2 = 16
+    h_size1 = 24
+    h_size2 = 32
 
     print(x_size, y_size)
 
@@ -41,7 +51,7 @@ def main():
     # Actual model
     h_layer1 = hidden_layer(X, [x_size, h_size1])
     h_layer2 = hidden_layer(h_layer1, [h_size1, h_size2])
-    y_hat = hidden_layer(h_layer2, [h_size2, y_size])
+    y_hat = tf.nn.softmax(tf.matmul(h_layer2, tf.Variable(tf.random_normal([h_size2, y_size]))))
 
     # Back-propagation
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=y_hat))
@@ -55,12 +65,10 @@ def main():
     # Train and test
     for epoch in range(EPOCHS):
         #TODO: use a batch to train
-        
+            
         # Training step
         for i in range(train_x.shape[0]):
             sess.run(updates, feed_dict={X: train_x[i:i+1], y: train_y[i: i+1]})
-
-        #sess.run(updates, feed_dict={X: train_x, y: train_y})
 
         correct_prediction = tf.equal(tf.argmax(y_hat, 1), tf.argmax(y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
