@@ -39,8 +39,8 @@ def main():
     # layer sizes (features and classes)
     x_size = train_x.shape[1]
     y_size = train_y.shape[1]
-    h_size1 = 24
-    h_size2 = 32
+    h_size1 = 32
+    h_size2 = 48
 
     print(x_size, y_size)
 
@@ -49,9 +49,15 @@ def main():
     y = tf.placeholder(tf.float32, shape=[None, y_size])
 
     # Actual model
-    h_layer1 = hidden_layer(X, [x_size, h_size1])
-    h_layer2 = hidden_layer(h_layer1, [h_size1, h_size2])
-    y_hat = tf.nn.softmax(tf.matmul(h_layer2, tf.Variable(tf.random_normal([h_size2, y_size]))))
+    #h_layer1 = hidden_layer(X, [x_size, h_size1])
+    #h_layer2 = hidden_layer(h_layer1, [h_size1, h_size2])
+    #y_hat = tf.nn.softmax(tf.matmul(h_layer2, tf.Variable(tf.random_normal([h_size2, y_size]))))
+
+    # Model with tf.layers
+    h_layer1 = tf.layers.dense(X, h_size1, activation=tf.nn.sigmoid)
+    h_layer2 = tf.layers.dense(h_layer1, h_size2, activation=tf.nn.sigmoid)
+    h_layer3 = tf.layers.dense(h_layer2, 16, activation=tf.nn.relu)
+    y_hat = tf.layers.dense(h_layer3, y_size, activation=tf.nn.softmax)
 
     # Back-propagation
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=y_hat))
@@ -72,7 +78,10 @@ def main():
 
         correct_prediction = tf.equal(tf.argmax(y_hat, 1), tf.argmax(y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        print("Epoch %d: Accuraccy = %f" % (epoch, sess.run(accuracy, feed_dict={X: test_x, y: test_y})))
+        print("Epoch %d: Accuraccy = %f, Loss = %f" % (
+                        epoch, 
+                        sess.run(accuracy, feed_dict={X: test_x, y: test_y}),
+                        sess.run(loss, feed_dict={X: train_x, y: train_y})))
 
 if __name__ == "__main__":
     main()
